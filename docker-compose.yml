@@ -1,0 +1,20 @@
+
+version: '3.8'
+services:
+  pm-app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./data:/app/data
+    environment:
+      - STORAGE_PATH=/app/uploads
+      - DATABASE_URL=file:/app/data/dev.db
+    restart: always
+
+volumes:
+  uploads:
+    driver: local
+  data:
+    driver: local
