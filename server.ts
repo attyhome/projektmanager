@@ -1,11 +1,11 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
-// Fix: Import Buffer explicitly to resolve compilation errors in environments where it's not globally defined
 import { Buffer } from 'buffer';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -15,17 +15,19 @@ const app = express();
 const port = process.env.PORT || 3000;
 const storagePath = process.env.STORAGE_PATH || path.join(__dirname, 'uploads');
 
-// Fix: Cast express.json middleware to any to resolve type conflicts on line 19/20 where NextHandleFunction is not recognized by some Express overloads
-app.use(express.json({ limit: '50mb' }) as any);
+// Middleware
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Kereszt-eredet engedélyezése (CORS)
-// Fix: Added explicit 'any' types and cast middleware function to any to resolve type mismatch with Express's internal 'PathParams' or 'RequestHandler' expectations.
-app.use(((req: any, res: any, next: any) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  next();
-}) as any);
+// CORS beállítás
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.FRONTEND_URL || '*'
+    : 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept']
+}));
 
 // Feltöltési mappa létrehozása, ha nem létezik
 if (!fs.existsSync(storagePath)) {
@@ -48,8 +50,7 @@ const upload = multer({
   limits: { fileSize: 50 * 1024 * 1024 }
 });
 
-// Fix: Cast express.static result to 'any' to resolve type compatibility issues with app.use when a path is specified (Error line 50).
-app.use('/files', express.static(storagePath) as any);
+app.use('/files', express.static(storagePath));
 
 // PDF Export Endpoint
 app.post('/api/export-pdf', (req, res) => {
@@ -179,7 +180,7 @@ app.post('/api/upload', upload.array('files') as any, (req: any, res: any) => {
   res.json({ success: true, files: fileData });
 });
 
-app.delete('/api/files/:filename', (req, res) => {
+app.delete('/api/files/:filename', (req: Request, res: Response) => {
   const filePath = path.join(storagePath, req.params.filename);
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
@@ -189,12 +190,17 @@ app.delete('/api/files/:filename', (req, res) => {
   }
 });
 
-// Fix: Cast express.static result to 'any' to resolve type compatibility issues with app.use (Error line 189).
-app.use(express.static(path.join(__dirname, 'dist')) as any);
-app.get('*', (req: any, res: any) => {
+// Health check endpoint
+app.get('/health', (req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Static files and SPA routing
+app.use(express.static(path.join(__dirname, 'dist')));
+app.get('*', (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 app.listen(port, () => {
-  console.log(`Szerver fut: http://localhost:${port}`);
+  console.log(`🚀 Szerver fut: http://localhost:${port}`);
 });
