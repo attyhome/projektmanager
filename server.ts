@@ -181,7 +181,8 @@ app.post('/api/upload', upload.array('files') as any, (req: any, res: any) => {
 });
 
 app.delete('/api/files/:filename', (req: Request, res: Response) => {
-  const filePath = path.join(storagePath, req.params.filename);
+  const filename = Array.isArray(req.params.filename) ? req.params.filename[0] : req.params.filename;
+  const filePath = path.join(storagePath, filename);
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
     res.json({ success: true });
