@@ -18,6 +18,9 @@ RUN npx prisma generate
 # Build the frontend
 RUN npm run build
 
+# Compile TypeScript server to JavaScript
+RUN npx tsc server.ts --outDir dist --module commonjs --esModuleInterop --resolveJsonModule --skipLibCheck
+
 # Production stage
 FROM node:20-alpine
 
@@ -32,12 +35,9 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
-# Copy necessary files
+# Copy necessary runtime files
 COPY prisma ./prisma
-COPY server.ts ./
 COPY services ./services
-COPY types.ts ./
-COPY constants.tsx ./
 
 # Create uploads directory
 RUN mkdir -p /app/uploads
@@ -50,7 +50,7 @@ ENV NODE_ENV=production
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
-  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
-# Start the application
-CMD ["node", "--loader", "ts-node/esm", "server.ts"]
+# Start the application (run compiled JavaScript)
+CMD ["node", "dist/server.js"]
