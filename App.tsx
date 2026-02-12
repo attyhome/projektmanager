@@ -966,36 +966,165 @@ const FinanceSummary: React.FC<{ projectId: string, onExport: () => void }> = ({
   );
 };
 
+// Cseréld le a LoginPage komponenst (969. sortól) erre:
+
 const LoginPage: React.FC<{ onLogin: (user: User) => void }> = ({ onLogin }) => {
-  const [email, setEmail] = useState('admin@projektmester.hu');
-  const [password, setPassword] = useState('admin');
+  const [isRegister, setIsRegister] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [error, setError] = useState('');
-  const handleLogin = (e: React.FormEvent) => { e.preventDefault(); const u = db.getUsers().find(x => x.email === email && x.password === password); if (u) onLogin(u); else setError('Hibás bejelentkezési adatok!'); };
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    const users = db.getUsers();
+    const user = users.find(x => x.email === email && x.password === password);
+    if (user) {
+      onLogin(user);
+    } else {
+      setError('Hibás email vagy jelszó!');
+    }
+  };
+
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!name || !email || !password) {
+      setError('Minden mező kitöltése kötelező!');
+      return;
+    }
+
+    const users = db.getUsers();
+    
+    // Ellenőrzés: van-e már ilyen email
+    if (users.find(u => u.email === email)) {
+      setError('Ez az email cím már használatban van!');
+      return;
+    }
+
+    // Első felhasználó automatikusan ADMIN!
+    const isFirstUser = users.length === 0;
+    
+    const newUser: User = {
+      id: 'u' + Date.now(),
+      email,
+      password,
+      name,
+      role: isFirstUser ? UserRole.ADMIN : UserRole.USER
+    };
+
+    db.saveUser(newUser);
+    
+    // Automatikus bejelentkezés
+    onLogin(newUser);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-50 rounded-full blur-[100px]"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500 rounded-full blur-[100px]"></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      {/* Háttér dekoráció */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-indigo-400/20 rounded-full blur-3xl"></div>
       </div>
-      <form onSubmit={handleLogin} className="bg-white p-10 md:p-14 rounded-[3.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] w-full max-w-md border relative z-10 animate-in zoom-in-95 duration-500">
-        <div className="flex justify-center mb-10"><div className="w-20 h-20 bg-indigo-600 rounded-[2rem] flex items-center justify-center text-white shadow-2xl shadow-indigo-200"><ICONS.Project /></div></div>
-        <h1 className="text-4xl font-black mb-12 text-center tracking-tighter text-slate-900">ProjektMester</h1>
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Admin hozzáférés</label>
-            <input type="email" placeholder="Email cím..." className="w-full bg-slate-50 border-2 border-slate-50 rounded-2xl p-4.5 text-sm font-bold outline-none focus:border-indigo-600 focus:bg-white transition-all shadow-inner" value={email} onChange={e => setEmail(e.target.value)} />
+
+      {/* Login/Register Card */}
+      <div className="relative bg-white/80 backdrop-blur-xl p-8 md:p-12 rounded-3xl shadow-2xl shadow-blue-500/10 w-full max-w-md border border-white/50">
+        
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/50 rotate-3 hover:rotate-0 transition-transform">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Biztonsági jelszó</label>
-            <input type="password" placeholder="••••••••" className="w-full bg-slate-50 border-2 border-slate-50 rounded-2xl p-4.5 text-sm font-bold outline-none focus:border-indigo-600 focus:bg-white transition-all shadow-inner" value={password} onChange={e => setPassword(e.target.value)} />
-          </div>
-          {error && <p className="text-red-500 text-[10px] font-black uppercase text-center tracking-widest animate-pulse">{error}</p>}
-          <button type="submit" className="w-full bg-slate-900 text-white font-black py-5 rounded-2xl shadow-2xl hover:bg-black hover:-translate-y-1 transition-all uppercase text-[11px] tracking-[0.3em]">Bejelentkezés</button>
         </div>
-        <div className="mt-10 text-center text-slate-400 text-[9px] font-black uppercase tracking-widest">© 2024 ProjektMester Management System</div>
-      </form>
+
+        {/* Cím */}
+        <h1 className="text-3xl font-bold mb-2 text-center text-slate-900">
+          {isRegister ? 'Regisztráció' : 'Bejelentkezés'}
+        </h1>
+        <p className="text-sm text-slate-500 text-center mb-8">
+          {isRegister ? 'Hozd létre a fiókodat' : 'Üdvözlünk vissza!'}
+        </p>
+
+        {/* Form */}
+        <form onSubmit={isRegister ? handleRegister : handleLogin} className="space-y-5">
+          
+          {isRegister && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-2">Teljes név</label>
+              <input
+                type="text"
+                placeholder="Kovács János"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                value={name}
+                onChange={e => setName(e.target.value)}
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-2">Email cím</label>
+            <input
+              type="email"
+              placeholder="pelda@email.com"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-2">Jelszó</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+            />
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/60 hover:-translate-y-0.5 transition-all"
+          >
+            {isRegister ? 'Fiók létrehozása' : 'Belépés'}
+          </button>
+        </form>
+
+        {/* Toggle Login/Register */}
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => {
+              setIsRegister(!isRegister);
+              setError('');
+              setEmail('');
+              setPassword('');
+              setName('');
+            }}
+            className="text-sm text-indigo-600 hover:text-indigo-700 font-medium transition"
+          >
+            {isRegister ? 'Már van fiókod? Jelentkezz be' : 'Nincs még fiókod? Regisztrálj'}
+          </button>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <p className="text-xs text-slate-400">
+            ProjektMester © 2024
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
+
 
 export default App;
