@@ -196,10 +196,17 @@ app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Static files and SPA routing
+// Static files
 app.use(express.static(path.join(__dirname, 'dist')));
-app.get('/(.*)', (req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+
+// SPA fallback - minden nem-API route-ot az index.html-re irányít
+app.use((req: Request, res: Response, next: NextFunction) => {
+  // Ha nem API endpoint, küldd az index.html-t
+  if (!req.path.startsWith('/api') && !req.path.startsWith('/files')) {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  } else {
+    next();
+  }
 });
 
 app.listen(port, () => {
