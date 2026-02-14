@@ -472,7 +472,14 @@ const App: React.FC = () => {
   if (!authState.user) return <LoginPage onLogin={handleLogin} />;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="min-h-screen bg-slate-100 relative">
+  {/* Háttér pattern */}
+  <div className="fixed inset-0 opacity-[0.03] pointer-events-none">
+    <div className="absolute inset-0" style={{
+      backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+      backgroundSize: '60px 60px'
+    }}></div>
+  </div>
       <Sidebar 
         projects={projects} 
         selectedId={selectedProjectId || (projects.length > 0 ? projects[0].id : null)} 
@@ -1020,110 +1027,110 @@ const LoginPage: React.FC<{ onLogin: (user: User) => void }> = ({ onLogin }) => 
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      {/* Háttér dekoráció */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-indigo-400/20 rounded-full blur-3xl"></div>
+  <div className="min-h-screen bg-slate-200 relative flex items-center justify-center p-4">
+    {/* Subtle grid pattern */}
+    <div className="fixed inset-0 opacity-[0.04]" style={{
+      backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h100v1H0zm0 0v100h1V0z' fill='%23000' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+      backgroundSize: '50px 50px'
+    }}></div>
+
+    {/* Login Card */}
+    <div className="relative bg-white border border-slate-300 p-10 md:p-14 rounded-lg shadow-lg w-full max-w-md">
+      
+      {/* Logo - Minimal */}
+      <div className="flex justify-center mb-10">
+        <div className="w-16 h-16 bg-slate-800 rounded flex items-center justify-center text-white">
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
       </div>
 
-      {/* Login/Register Card */}
-      <div className="relative bg-white/80 backdrop-blur-xl p-8 md:p-12 rounded-3xl shadow-2xl shadow-blue-500/10 w-full max-w-md border border-white/50">
+      {/* Cím - Kontrasztos */}
+      <h1 className="text-3xl font-bold mb-2 text-center text-slate-900">
+        {isRegister ? 'Regisztráció' : 'Bejelentkezés'}
+      </h1>
+      <p className="text-sm text-slate-600 text-center mb-8">
+        {isRegister ? 'Új fiók létrehozása' : 'Jelentkezz be a fiókodba'}
+      </p>
+
+      {/* Form */}
+      <form onSubmit={isRegister ? handleRegister : handleLogin} className="space-y-5">
         
-        {/* Logo */}
-        <div className="flex justify-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/50 rotate-3 hover:rotate-0 transition-transform">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
+        {isRegister && (
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">Név</label>
+            <input
+              type="text"
+              placeholder="Teljes név"
+              className="w-full bg-slate-50 border-2 border-slate-300 rounded px-4 py-3 text-sm text-slate-900 font-medium focus:outline-none focus:border-slate-800 transition"
+              value={name}
+              onChange={e => setName(e.target.value)}
+            />
           </div>
+        )}
+
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">Email</label>
+          <input
+            type="email"
+            placeholder="pelda@email.com"
+            className="w-full bg-slate-50 border-2 border-slate-300 rounded px-4 py-3 text-sm text-slate-900 font-medium focus:outline-none focus:border-slate-800 transition"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+          />
         </div>
 
-        {/* Cím */}
-        <h1 className="text-3xl font-bold mb-2 text-center text-slate-900">
-          {isRegister ? 'Regisztráció' : 'Bejelentkezés'}
-        </h1>
-        <p className="text-sm text-slate-500 text-center mb-8">
-          {isRegister ? 'Hozd létre a fiókodat' : 'Üdvözlünk vissza!'}
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">Jelszó</label>
+          <input
+            type="password"
+            placeholder="••••••••"
+            className="w-full bg-slate-50 border-2 border-slate-300 rounded px-4 py-3 text-sm text-slate-900 font-medium focus:outline-none focus:border-slate-800 transition"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+          />
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border-2 border-red-300 text-red-900 px-4 py-3 rounded text-sm font-medium">
+            {error}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          className="w-full bg-slate-900 text-white font-bold py-4 rounded hover:bg-slate-800 transition uppercase text-xs tracking-widest"
+        >
+          {isRegister ? 'Regisztráció' : 'Belépés'}
+        </button>
+      </form>
+
+      {/* Toggle */}
+      <div className="mt-6 text-center">
+        <button
+          onClick={() => {
+            setIsRegister(!isRegister);
+            setError('');
+            setEmail('');
+            setPassword('');
+            setName('');
+          }}
+          className="text-sm text-slate-700 hover:text-slate-900 font-semibold transition"
+        >
+          {isRegister ? 'Bejelentkezés →' : 'Regisztráció →'}
+        </button>
+      </div>
+
+      {/* Footer */}
+      <div className="mt-8 text-center">
+        <p className="text-xs text-slate-500 uppercase tracking-widest">
+          ProjektMester
         </p>
-
-        {/* Form */}
-        <form onSubmit={isRegister ? handleRegister : handleLogin} className="space-y-5">
-          
-          {isRegister && (
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-2">Teljes név</label>
-              <input
-                type="text"
-                placeholder="Kovács János"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                value={name}
-                onChange={e => setName(e.target.value)}
-              />
-            </div>
-          )}
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-2">Email cím</label>
-            <input
-              type="email"
-              placeholder="pelda@email.com"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-2">Jelszó</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-            />
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/60 hover:-translate-y-0.5 transition-all"
-          >
-            {isRegister ? 'Fiók létrehozása' : 'Belépés'}
-          </button>
-        </form>
-
-        {/* Toggle Login/Register */}
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => {
-              setIsRegister(!isRegister);
-              setError('');
-              setEmail('');
-              setPassword('');
-              setName('');
-            }}
-            className="text-sm text-indigo-600 hover:text-indigo-700 font-medium transition"
-          >
-            {isRegister ? 'Már van fiókod? Jelentkezz be' : 'Nincs még fiókod? Regisztrálj'}
-          </button>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-xs text-slate-400">
-            ProjektMester © 2024
-          </p>
-        </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 
